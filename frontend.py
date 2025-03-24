@@ -1,0 +1,256 @@
+import re
+import io
+import pandas as pd
+import docx
+import streamlit as st
+from openpyxl.styles import Font
+
+# ---------------------------------------------------------
+# Backend Processing Functions
+# ---------------------------------------------------------
+
+def read_docx_file(file):
+    """Extract text from a DOCX file-like object."""
+    doc = docx.Document(file)
+    return "\n".join(para.text for para in doc.paragraphs)
+
+def get_corresponding_bank(preamble):
+    """
+    Build the corresponding bank from preamble lines.
+    Drops any lines starting with "20:".
+    Expects the first remaining line to be the bank name and the second to be the currency descriptor.
+    """
+    filtered = [line for line in preamble if not line.startswith("20:")]
+    if len(filtered) >= 2:
+        bank_name = f"{filtered[0]} - {filtered[1]}"
+        return bank_name, filtered[1]
+    elif len(filtered) == 1:
+        return filtered[0], None
+    else:
+        return "Unknown Bank", None
+
+def clean_sheet_name(sheet_name):
+    """
+    Clean up the bank name so it is a valid Excel sheet name:
+      - Replace invalid characters with underscores.
+      - Limit length to 31 characters (Excel's limit).
+    """
+    cleaned = re.sub(r'[\\/*?:\[\]]', '_', sheet_name)
+    return cleaned[:31]
+
+def process_message(block):
+    """
+    Processes a single SWIFT message block.
+    Returns a dict with:
+      - bank_name
+      - opening_balance (from :60F:)
+      - closing_balance (from :62F:)
+      - transactions: a list of dicts containing transaction data (from :61: tags)
+    """
+    preamble = []
+    swift_lines = []
+    for line in block:
+        if line.startswith(":"):
+            swift_lines.append(line)
+        else:
+            if not swift_lines:
+                preamble.append(line)
+            else:
+                swift_lines.append(line)
+    
+    # Skip block if none of the relevant SWIFT tags are present.
+    if not any(tag in " ".join(swift_lines) for tag in [":60F:", ":61:", ":62F:"]):
+        return None
+
+    corresponding_bank, _ = get_corresponding_bank(preamble)
+    opening_balance = None
+    closing_balance = None
+    currency_code = None
+    transactions = []
+
+    # Regex for :61: tag with optional 4-digit entry date.
+    tx_pattern = r"^:61:(\d{6})(\d{4})?((?:C(?:[CDPR])?)|(?:D(?:[RPD])?))([\d,]+)(.+)$"
+    
+    i = 0
+    while i < len(swift_lines):
+        line = swift_lines[i]
+        if line.startswith(":60F:"):
+            m = re.match(r":60F:[CD]{1,2}(\d{6})([A-Z]{3,})([\d,]+)", line)
+            if m:
+                currency_code = m.group(2)
+                amount_str = m.group(3).replace(',', '.')
+                opening_balance = float(amount_str)
+        elif line.startswith(":62F:"):
+            m = re.match(r":62F:[CD]{1,2}(\d{6})([A-Z]{3,})([\d,]+)", line)
+            if m:
+                amount_str = m.group(3).replace(',', '.')
+                closing_balance = float(amount_str)
+        elif line.startswith(":61:"):
+            m_tx = re.match(tx_pattern, line)
+            if m_tx:
+                tx_date = m_tx.group(1)
+                # m_tx.group(2) is the optional entry date (unused here)
+                tx_code = m_tx.group(3).strip().upper()
+                tx_amount = float(m_tx.group(4).replace(',', '.'))
+                reference = m_tx.group(5).strip()
+                ordering_customer = ""
+                if (i + 1) < len(swift_lines) and not swift_lines[i+1].startswith(":"):
+                    ordering_customer = swift_lines[i+1].strip()
+                    i += 1
+
+                # Explicitly handle known codes.
+                if tx_code in {"D", "DR", "DP", "DD"}:
+                    debit_amt = tx_amount
+                    credit_amt = None
+                elif tx_code in {"C", "CC", "CD", "CP", "CR"}:
+                    debit_amt = None
+                    credit_amt = tx_amount
+                else:
+                    if tx_code.startswith("D"):
+                        debit_amt = tx_amount
+                        credit_amt = None
+                    else:
+                        debit_amt = None
+                        credit_amt = tx_amount
+
+                transactions.append({
+                    "Date": tx_date,
+                    "Currency": currency_code if currency_code else "",
+                    "Ordering Customer": ordering_customer,
+                    "Swift_Credit": credit_amt,
+                    "Swift_Debit": debit_amt,
+                    "Reference": reference
+                })
+        i += 1
+
+    return {
+        "bank_name": corresponding_bank,
+        "opening_balance": opening_balance,
+        "closing_balance": closing_balance,
+        "transactions": transactions
+    }
+
+def process_swift_message(swift_message):
+    """
+    Process the entire SWIFT text.
+    Splits the text into blocks, processes each block, and aggregates data by corresponding bank.
+    """
+    swift_message = re.sub(r"(:\d{2}[A-Z]{0,3}:)", r"\n\1", swift_message).strip()
+    all_lines = [line.strip() for line in swift_message.splitlines() if line.strip()]
+    messages = []
+    current_block = []
+    for line in all_lines:
+        if not current_block:
+            current_block.append(line)
+        else:
+            if (not line.startswith(":")) and any(l.startswith(":62F:") for l in current_block):
+                messages.append(current_block)
+                current_block = [line]
+            else:
+                current_block.append(line)
+    if current_block:
+        messages.append(current_block)
+    
+    bank_data = {}
+    for block in messages:
+        result = process_message(block)
+        if result is not None:
+            bname = result["bank_name"]
+            bank_data.setdefault(bname, []).append(result)
+    return bank_data
+
+# ---------------------------------------------------------
+# Streamlit Frontend
+# ---------------------------------------------------------
+
+st.title("SWIFT Transactions Extractor")
+
+uploaded_file = st.file_uploader("Upload a DOCX file", type=["docx"])
+
+if uploaded_file is not None:
+    with st.spinner("Processing file..."):
+        swift_text = read_docx_file(uploaded_file)
+        bank_data = process_swift_message(swift_text)
+    
+    st.success("File processed successfully!")
+    
+    if bank_data:
+        with st.expander("Processed Banks", expanded=False):
+            bank_names = list(bank_data.keys())
+            st.write(bank_names)
+        
+        selected_bank = st.selectbox("Select a bank to preview", list(bank_data.keys()))
+        if selected_bank in bank_data:
+            block = bank_data[selected_bank][0]
+            
+            st.subheader(f"Opening & Closing Balance for {selected_bank}")
+            balance_df = pd.DataFrame({
+                "Balance": ["Opening Balance", "Closing Balance"],
+                "Value": [
+                    block["opening_balance"] if block["opening_balance"] is not None else "",
+                    block["closing_balance"] if block["closing_balance"] is not None else ""
+                ]
+            })
+            st.dataframe(balance_df)
+            
+            st.subheader(f"Transactions for {selected_bank}")
+            tx_data = block["transactions"]
+            if tx_data:
+                tx_df = pd.DataFrame(tx_data)
+            else:
+                tx_df = pd.DataFrame(columns=["Date", "Currency", "Ordering Customer", "Swift_Credit", "Swift_Debit", "Reference"])
+            
+            # Ensure the columns exist and fill missing values.
+            if "Ordering Customer" not in tx_df.columns:
+                tx_df["Ordering Customer"] = ""
+            if "Reference" not in tx_df.columns:
+                tx_df["Reference"] = ""
+            tx_df["Ordering Customer"] = tx_df["Ordering Customer"].fillna("").astype(str).str.strip()
+            tx_df["Reference"] = tx_df["Reference"].fillna("").astype(str).str.strip()
+            tx_df["Narration"] = (tx_df["Ordering Customer"] + " " + tx_df["Reference"]).str.strip()
+            st.dataframe(tx_df)
+        
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine="openpyxl") as writer:
+            for bank, blocks in bank_data.items():
+                sheet_name = clean_sheet_name(bank)
+                start_row = 0
+                for blk in blocks:
+                    obal = blk["opening_balance"]
+                    cbal = blk["closing_balance"]
+                    txs = blk["transactions"]
+                    balance_df = pd.DataFrame({
+                        "Balance": ["Opening Balance", "Closing Balance"],
+                        "Value": [obal if obal is not None else "", 
+                                  cbal if cbal is not None else ""]
+                    })
+                    balance_df.to_excel(writer, sheet_name=sheet_name, startrow=start_row, index=False)
+                    start_row += len(balance_df) + 1
+                    if txs:
+                        tx_df = pd.DataFrame(txs, columns=["Date", "Currency", "Ordering Customer", "Swift_Credit", "Swift_Debit", "Reference"])
+                    else:
+                        tx_df = pd.DataFrame(columns=["Date", "Currency", "Ordering Customer", "Swift_Credit", "Swift_Debit", "Reference"])
+                    if "Ordering Customer" not in tx_df.columns:
+                        tx_df["Ordering Customer"] = ""
+                    if "Reference" not in tx_df.columns:
+                        tx_df["Reference"] = ""
+                    tx_df["Ordering Customer"] = tx_df["Ordering Customer"].fillna("").astype(str).str.strip()
+                    tx_df["Reference"] = tx_df["Reference"].fillna("").astype(str).str.strip()
+                    tx_df["Narration"] = (tx_df["Ordering Customer"] + " " + tx_df["Reference"]).str.strip()
+                    tx_df.to_excel(writer, sheet_name=sheet_name, startrow=start_row, index=False)
+                    start_row += len(tx_df) + 2
+
+            for sheet in writer.book.worksheets:
+                for row in sheet.iter_rows():
+                    for cell in row:
+                        cell.font = Font(name="Arial", size=10)
+        output.seek(0)
+        
+        st.download_button(
+            "Download Excel file",
+            data=output,
+            file_name="swift_transactions.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+    else:
+        st.warning("No SWIFT transactions found in the file.")
