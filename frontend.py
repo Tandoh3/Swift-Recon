@@ -4,6 +4,7 @@ import pandas as pd
 import docx
 import streamlit as st
 from openpyxl.styles import Font
+import os 
 
 # ---------------------------------------------------------
 # Backend Processing Functions
@@ -165,6 +166,32 @@ def process_swift_message(swift_message):
 
 st.title("SWIFT Transactions Extractor")
 
+from docx import Document
+
+def generate_word_template():
+    doc = Document()
+    doc.add_heading("SWIFT Message Template", 0)
+    doc.add_paragraph("Please use the format below to paste your SWIFT messages.")
+    doc.add_paragraph("Bank XYZ\nUSD\n:20:REFERENCE123\n:60F:C230501USD1234,56\n:61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n")
+    doc.add_paragraph("Bank XYZ\nGBP\n:20:REFERENCE123\n:60F:C230501USD1234,56\n:61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n")
+    doc.add_paragraph("Bank ZPU\nYUAN\n:20:REFERENCE123\n:60F:C230501USD1234,56\n:61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n")
+    doc.add_paragraph("Bank ZPU\nUSD\n:20:REFERENCE123\n:60F:C230501USD1234,56\n:61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n")
+    buffer = io.BytesIO()
+    doc.save(buffer)
+    buffer.seek(0)
+    return buffer
+
+with st.expander("Download Word Template", expanded=False):
+    st.markdown("Download a sample template to populate your SWIFT messages.")
+    template_buffer = generate_word_template()
+    st.download_button(
+        label="📄 Download Word Template",
+        data=template_buffer,
+        file_name="word_template.docx",
+        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    )
+
+
 uploaded_file = st.file_uploader("Upload a DOCX file", type=["docx"])
 
 if uploaded_file is not None:
@@ -245,11 +272,16 @@ if uploaded_file is not None:
                     for cell in row:
                         cell.font = Font(name="Arial", size=10)
         output.seek(0)
-        
+
+        # Create dynamic download filename 
+        original_filename = os.path.splitext(uploaded_file.name)[0]
+        processed_filename = f"{original_filename}_processed.xlsx"
+
+        # Download button with dyanmic name 
         st.download_button(
             "Download Excel file",
             data=output,
-            file_name="swift_transactions.xlsx",
+            file_name=processed_filename,
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
     else:
