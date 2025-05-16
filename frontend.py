@@ -1,10 +1,11 @@
 import re
 import io
 import pandas as pd
-import docx
 import streamlit as st
 from openpyxl.styles import Font
 import os 
+from docx import Document
+from openpyxl import Workbook
 
 # ---------------------------------------------------------
 # Backend Processing Functions
@@ -164,32 +165,97 @@ def process_swift_message(swift_message):
 # Streamlit Frontend
 # ---------------------------------------------------------
 
-st.title("SWIFT Transactions Extractor")
+st.markdown(
+    "<h1 style='text-align: center; margin-bottom: 1.5rem;'>SwiftSync Pro</h1>",
+    unsafe_allow_html=True
+)
 
-from docx import Document
-
+# ————— Word Template —————
 def generate_word_template():
     doc = Document()
-    doc.add_heading("SWIFT Message Template", 0)
-    doc.add_paragraph("Please use the format below to paste your SWIFT messages.")
-    doc.add_paragraph("Bank XYZ\nUSD\n:20:REFERENCE123\n:60F:C230501USD1234,56\n:61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n")
-    doc.add_paragraph("Bank XYZ\nGBP\n:20:REFERENCE123\n:60F:C230501USD1234,56\n:61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n")
-    doc.add_paragraph("Bank ZPU\nYUAN\n:20:REFERENCE123\n:60F:C230501USD1234,56\n:61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n")
-    doc.add_paragraph("Bank ZPU\nUSD\n:20:REFERENCE123\n:60F:C230501USD1234,56\n:61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n")
+    doc.add_heading("SWIFT Transactions Template", 0)
+    doc.add_paragraph(
+        "Please use the format below to paste your SWIFT transactions.\n\n"
+        "Bank XYZ\n"
+        "USD\n"
+        ":20:REFERENCE123\n"
+        ":60F:C230501USD1234,56\n"
+        ":61:230502C123,45REFERENCE\n"
+        "Customer Name\n"
+        ":62F:C230530USD5678,90\n\n"
+        "Bank XYZ\n"
+        "GBP\n"
+        ":20:REFERENCE123\n"
+        ":60F:C230501USD1234,56\n"
+        ":61:230502C123,45REFERENCE\n"
+        "Customer Name\n"
+        ":62F:C230530USD5678,90\n\n"
+        "Bank ZPU\n"
+        "YUAN\n"
+        ":20:REFERENCE123\n"
+        ":60F:C230501USD1234,56\n"
+        ":61:230502C123,45REFERENCE\n"
+        "Customer Name\n"
+        ":62F:C230530USD5678,90\n\n"
+        "Bank ZPU\n"
+        "USD\n"
+        ":20:REFERENCE123\n"
+        ":60F:C230501USD1234,56\n"
+        ":61:230502C123,45REFERENCE\n"
+        "Customer Name\n"
+        ":62F:C230530USD5678,90"
+    )
     buffer = io.BytesIO()
     doc.save(buffer)
     buffer.seek(0)
     return buffer
 
-with st.expander("Download Word Template", expanded=False):
-    st.markdown("Download a sample template to populate your SWIFT messages.")
-    template_buffer = generate_word_template()
-    st.download_button(
-        label="📄 Download Word Template",
-        data=template_buffer,
-        file_name="word_template.docx",
-        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    )
+# ————— Excel Template —————
+def generate_excel_template():
+    bank_names = [
+        "BOG - USD", "BOG - GBP", "BOG-EUR", "BOG - YUAN", "JP MORGAN USD -SUB",
+        "JP MORGAN USD - MAIN", "STANDARD CHARTERED - SCBLUS33", "STANDARD CHARTERED UK SCBLGB2L",
+        "STANDARD CHARTERED UK - GBP", "STANDARD CHARTERED USD","GTB UK - USD SUB 1", "GTB UK - USD SUB 2", 
+        "GTB UK - GBP", "GTB UK - GBP SUB","GTB UK - EUR", "GTB UK - EUR SUB", "CITI LDN - USD",
+        "CITI LDN - GBP", "CITI LDN - EUR", "CITI LDN - ZAR CITIGB2L", "CITI LDN FX - USD",
+        "CITI LDN FX - GBP", "CITI LDN FX - EUR", "RMB - USD FIRNZAJJ", "CITI NY - MASTERCARD", "CITI NY SETTLEMENT", 
+        "CITI NY - MAIN"
+    ]
+    wb = Workbook()
+    # remove default sheet
+    wb.remove(wb.active)
+    for bank in bank_names:
+        wb.create_sheet(title=bank)
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    return buffer
+
+# ————— UI: Two‑Column Downloads —————
+with st.expander("Download Templates", expanded=False):
+    col1, col2 = st.columns(2)
+
+    # Word
+    with col1:
+        st.markdown("#### Word Template")
+        word_buf = generate_word_template()
+        st.download_button(
+            label="📄 Download .docx",
+            data=word_buf,
+            file_name="swift_template.docx",
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
+
+    # Excel
+    with col2:
+        st.markdown("#### Excel Template")
+        excel_buf = generate_excel_template()
+        st.download_button(
+            label="📑 Download .xlsx",
+            data=excel_buf,
+            file_name="corresponding_banks_template.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
 
 uploaded_file = st.file_uploader("Upload a DOCX file", type=["docx"])
