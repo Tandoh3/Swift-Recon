@@ -5,6 +5,7 @@ import streamlit as st
 from openpyxl.styles import Font
 import os 
 from docx import Document
+import docx
 from openpyxl import Workbook
 
 # ---------------------------------------------------------
