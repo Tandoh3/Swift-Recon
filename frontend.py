@@ -179,7 +179,7 @@ with st.sidebar:
         <div style="display: flex; flex-direction: column; align-items: center; text-align: center; padding-top: 20px;">
             <h2 style="margin-bottom: 10px;">ℹ️ About The SWIFT Extractor App</h2>
             <p style="max-width: 250px;">
-                <strong>The SWIFT Extractor App</strong> automates the extraction, formatting, and export of SWIFT statement data to Excel for reconciliation and financial review.
+                <strong>The SWIFT Extractor App</strong> automates the extraction, formatting, and export of swift statement data to Excel for reconciliation and financial review.
             </p>
             <ul style="list-style: none; padding: 0; margin-top: 10px;">
                 <li>📄 Parse balances and transactions</li>
