@@ -166,45 +166,141 @@ def process_swift_message(swift_message):
 # Streamlit Frontend
 # ---------------------------------------------------------
 
+st.set_page_config(page_title="SwiftSync", layout="centered")
 st.markdown(
-    "<h1 style='text-align: center; margin-bottom: 1.5rem;'>SwiftSync Pro</h1>",
+    "<h1 style='text-align: center; margin-bottom: 1.5rem;'>SwiftSync</h1>",
     unsafe_allow_html=True
 )
+
+# Sidebar navigation 
+with st.sidebar:
+    st.markdown(
+        """
+        <div style="display: flex; flex-direction: column; align-items: center; text-align: center; padding-top: 20px;">
+            <h2 style="margin-bottom: 10px;">ℹ️ About SwiftSync</h2>
+            <p style="max-width: 250px;">
+                <strong>SwiftSync</strong> automates the extraction, formatting, and export of SWIFT statement data to Excel for reconciliation and financial review.
+            </p>
+            <ul style="list-style: none; padding: 0; margin-top: 10px;">
+                <li>📄 Parse balances and transactions</li>
+                <li>📥 Download Word/Excel templates </li>
+                <li>📊 Export data for reconciliation</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True
+    )
+
 
 # ————— Word Template —————
 def generate_word_template():
     doc = Document()
     doc.add_heading("SWIFT Transactions Template", 0)
     doc.add_paragraph(
-        "Please use the format below to paste your SWIFT transactions.\n\n"
-        "Bank XYZ\n"
-        "USD\n"
-        ":20:REFERENCE123\n"
-        ":60F:C230501USD1234,56\n"
-        ":61:230502C123,45REFERENCE\n"
-        "Customer Name\n"
-        ":62F:C230530USD5678,90\n\n"
-        "Bank XYZ\n"
-        "GBP\n"
-        ":20:REFERENCE123\n"
-        ":60F:C230501USD1234,56\n"
-        ":61:230502C123,45REFERENCE\n"
-        "Customer Name\n"
-        ":62F:C230530USD5678,90\n\n"
-        "Bank ZPU\n"
-        "YUAN\n"
-        ":20:REFERENCE123\n"
-        ":60F:C230501USD1234,56\n"
-        ":61:230502C123,45REFERENCE\n"
-        "Customer Name\n"
-        ":62F:C230530USD5678,90\n\n"
-        "Bank ZPU\n"
-        "USD\n"
-        ":20:REFERENCE123\n"
-        ":60F:C230501USD1234,56\n"
-        ":61:230502C123,45REFERENCE\n"
-        "Customer Name\n"
-        ":62F:C230530USD5678,90"
+               "Please use the format below to paste your SWIFT transactions.\n\n"
+                "BOG \nUSD\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "BOG \nGBP\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "BOG \nEUR\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "BOG \nYUAN\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "ABSA \nUSD\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "JP MORGAN MAIN \nUSD\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "JP MORGAN SUB \nUSD\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "GIB \nUSD\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "GIB \nEUR\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "STANDARD BANK SA \nUSD\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "STANDARD CHARTERED UK SCBLGB2L \nUSD\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "STANDARD CHARTERED UK \nGBP\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "STANDARD CHARTERED UK \nYUAN\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+                
+                "STANDARD CHARTERED UK \nSCBL\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "STANDARD CHARTERED UK \nEUR\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "GTB UK GTBIGB2L \nUSD\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "GTB UK GTBIGB2L SUB \nUSD\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "GTB UK GTBIGB2L SUB 1 \nUSD\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "GTB UK SUB 2 \nUSD\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "GTB UK \nEUR\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "GTB UK \nGBP\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "GTB UK SUB \nGBP\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "GTB UK SUB \nEUR\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "CITI LDN \nUSD\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "CITI LDN \nGBP\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "CITI LDN \nEUR\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "CITI LDN \nZAR\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "CITI LDN FX \nUSD\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "CITI LDN FX \nGBP\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "CITI LDN FX \nEUR\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "RMB \nUSD\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "CITI NY \nMASTERCARD\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "CITI NY \nSETTLEMENT\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "CITI NY \nMAIN\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
+
+                "CITI NY SUB \nUSD\n:20:REFERENCE123\n:60F:C230501USD1234,56\n"
+                ":61:230502C123,45REFERENCE\nCustomer Name\n:62F:C230530USD5678,90\n\n"
     )
     buffer = io.BytesIO()
     doc.save(buffer)
@@ -214,13 +310,15 @@ def generate_word_template():
 # ————— Excel Template —————
 def generate_excel_template():
     bank_names = [
-        "BOG - USD", "BOG - GBP", "BOG-EUR", "BOG - YUAN", "JP MORGAN USD -SUB",
-        "JP MORGAN USD - MAIN", "STANDARD CHARTERED - SCBLUS33", "STANDARD CHARTERED UK SCBLGB2L",
-        "STANDARD CHARTERED UK - GBP", "STANDARD CHARTERED USD","GTB UK - USD SUB 1", "GTB UK - USD SUB 2", 
-        "GTB UK - GBP", "GTB UK - GBP SUB","GTB UK - EUR", "GTB UK - EUR SUB", "CITI LDN - USD",
-        "CITI LDN - GBP", "CITI LDN - EUR", "CITI LDN - ZAR CITIGB2L", "CITI LDN FX - USD",
-        "CITI LDN FX - GBP", "CITI LDN FX - EUR", "RMB - USD FIRNZAJJ", "CITI NY - MASTERCARD", "CITI NY SETTLEMENT", 
-        "CITI NY - MAIN"
+                "BOG - USD", "BOG - GBP", "BOG - EUR", "BOG - YUAN", "ABSA - USD", "JP MORGAN MAIN - USD",
+                "JP MORGAN SUB - USD", "GIB - USD", "GIB - EUR", "STANDARD BANK SA - USD", 
+                "STANDARD CHARTERED UK SCBLGB2L", "STANDARD CHARTERED UK - GBP",
+                "STANDARD CHARTERED UK - SCBLUS3", "STANDARD CHARTERED UK - EUR", "GTB UK - USD SUB 1",
+                "GTB UK GTBIGB2L SUB - USD", "GTB UK GTBIGB2L SUB 1 - GBP", "GTB UK GTBIGB2L SUB 2 - USD",
+                "GTB UK - EUR", "GTB UK - GBP", "GTB UK SUB - EUR", "CITI LDN - USD", "CITI LDN - GBP", "CITI LDN - EUR",
+                "CITI LDN - ZAR", "CITI LDN FX - USD", "CITI LDN FX - GBP",
+                "CITI LDN FX - EUR", "RMB - USD", "CITI NY - MASTERCARD",
+                "CITI NY - SETTLEMENT", "CITI NY - MAIN", "CITI NY SUB - USD"
     ]
     wb = Workbook()
     # remove default sheet
