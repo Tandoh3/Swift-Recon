@@ -166,9 +166,9 @@ def process_swift_message(swift_message):
 # Streamlit Frontend
 # ---------------------------------------------------------
 
-st.set_page_config(page_title="SwiftSync", layout="centered")
+st.set_page_config(page_title="Swift Extractor App", layout="centered")
 st.markdown(
-    "<h1 style='text-align: center; margin-bottom: 1.5rem;'>SwiftSync</h1>",
+    "<h1 style='text-align: center; margin-bottom: 1.5rem;'>Swift Extractor App</h1>",
     unsafe_allow_html=True
 )
 
@@ -177,9 +177,9 @@ with st.sidebar:
     st.markdown(
         """
         <div style="display: flex; flex-direction: column; align-items: center; text-align: center; padding-top: 20px;">
-            <h2 style="margin-bottom: 10px;">ℹ️ About SwiftSync</h2>
+            <h2 style="margin-bottom: 10px;">ℹ️ About The Swift Extractor App</h2>
             <p style="max-width: 250px;">
-                <strong>SwiftSync</strong> automates the extraction, formatting, and export of SWIFT statement data to Excel for reconciliation and financial review.
+                <strong>The Swift Extractor App</strong> automates the extraction, formatting, and export of SWIFT statement data to Excel for reconciliation and financial review.
             </p>
             <ul style="list-style: none; padding: 0; margin-top: 10px;">
                 <li>📄 Parse balances and transactions</li>
