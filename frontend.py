@@ -172,6 +172,25 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+import streamlit as st
+
+st.markdown(
+    """
+    <style>
+    /* Style footer text gray and disable clicks */
+    footer {
+        color: #999999 !important;       /* Gray text */
+        font-weight: normal !important;
+        font-size: 12px !important;
+        pointer-events: none;             /* Disable clicks */
+        user-select: none;                /* Disable text selection */
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+
 # Sidebar navigation 
 with st.sidebar:
     st.markdown(
