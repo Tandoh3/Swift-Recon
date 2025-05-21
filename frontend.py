@@ -169,22 +169,6 @@ def process_swift_message(swift_message):
 
 st.set_page_config(page_title="SWIFT Extractor App", layout="centered")
 
-
-st.markdown(
-    """
-    <style>
-    footer, footer a {
-        color: #999 !important;
-        pointer-events: none !important;
-        user-select: none !important;
-        text-decoration: none !important;
-        cursor: default !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
 st.markdown("<h1 style='text-align: center;'>SWIFT Extractor App</h1>", unsafe_allow_html=True)
 
 
