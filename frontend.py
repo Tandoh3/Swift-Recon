@@ -167,8 +167,10 @@ def process_swift_message(swift_message):
 # Streamlit Frontend
 # ---------------------------------------------------------
 
+st.set_page_config(page_title="SWIFT Extractor App", layout="centered")
 st.markdown(
-    """
+   """
+   <h1 style='text-align: center; margin-bottom: 1.5rem;'>SWIFT Extractor App</h1>    
     <style>
     /* Target footer and disable interaction */
     footer, footer a {
@@ -180,12 +182,6 @@ st.markdown(
     }
     </style>
     """,
-    unsafe_allow_html=True
-)
-
-st.set_page_config(page_title="SWIFT Extractor App", layout="centered")
-st.markdown(
-    "<h1 style='text-align: center; margin-bottom: 1.5rem;'>SWIFT Extractor App</h1>",
     unsafe_allow_html=True
 )
 
