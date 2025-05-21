@@ -8,6 +8,23 @@ from docx import Document
 import docx
 from openpyxl import Workbook
 
+st.markdown(
+    """
+    <style>
+    /* Target footer and disable interaction */
+    footer, footer a {
+        color: #999999 !important;       /* Gray text */
+        pointer-events: none !important; /* Disable clicks */
+        user-select: none !important;    /* Disable text selection */
+        cursor: default !important;      /* Default cursor */
+        text-decoration: none !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+
 # ---------------------------------------------------------
 # Backend Processing Functions
 # ---------------------------------------------------------
@@ -173,21 +190,6 @@ st.markdown(
 )
 
 
-st.markdown(
-    """
-    <style>
-    /* Style footer text gray and disable clicks */
-    footer {
-        color: #999999 !important;       /* Gray text */
-        font-weight: normal !important;
-        font-size: 12px !important;
-        pointer-events: none;             /* Disable clicks */
-        user-select: none;                /* Disable text selection */
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
 
 
 # Sidebar navigation 
