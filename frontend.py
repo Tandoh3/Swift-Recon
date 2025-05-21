@@ -8,22 +8,6 @@ from docx import Document
 import docx
 from openpyxl import Workbook
 
-st.markdown(
-    """
-    <style>
-    /* Target footer and disable interaction */
-    footer, footer a {
-        color: #999999 !important;       /* Gray text */
-        pointer-events: none !important; /* Disable clicks */
-        user-select: none !important;    /* Disable text selection */
-        cursor: default !important;      /* Default cursor */
-        text-decoration: none !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
 
 # ---------------------------------------------------------
 # Backend Processing Functions
@@ -182,6 +166,22 @@ def process_swift_message(swift_message):
 # ---------------------------------------------------------
 # Streamlit Frontend
 # ---------------------------------------------------------
+
+st.markdown(
+    """
+    <style>
+    /* Target footer and disable interaction */
+    footer, footer a {
+        color: #999999 !important;       /* Gray text */
+        pointer-events: none !important; /* Disable clicks */
+        user-select: none !important;    /* Disable text selection */
+        cursor: default !important;      /* Default cursor */
+        text-decoration: none !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 st.set_page_config(page_title="SWIFT Extractor App", layout="centered")
 st.markdown(
